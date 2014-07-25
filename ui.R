@@ -3,13 +3,15 @@
 ### shiny ui for 2014 FIFA World Cup Goal Data Inspector
 require(rCharts)
 library(devtools)
-install_github("wc14goals", "mpodell")
+# install_github("wc14goals", "mpodell")
 library(wc14goals)
 data(wc14goals)
 
+wc14g <- wc14goals
+
 # create a data.frame from which to build a custom goal count by min historgram using rPlot
 #
-countbymin <- wc14goals[, c("date", "name", "minute", "owngoal", "steam", "team1", "team2", "score1", "score2")]
+countbymin <- wc14g[, c("date", "name", "minute", "owngoal", "steam", "team1", "team2", "score1", "score2")]
 
 # create player team (pteam) variable
 for (l in 1:nrow(countbymin)){
