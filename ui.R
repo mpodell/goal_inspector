@@ -28,11 +28,15 @@ wc14g <- wc14goals
 ##########   
 
 
-# create a data.frame from which to build a custom goal count by min historgram using rPlot
-#
-countbymin <- wc14g[, c("date", "name", "minute", "owngoal", "steam", "team1", "team2", "score1", "score2")]
+# create a data.frame from which to build the selection box choices.
+# extra variables included for future interactions.
+
+countbymin <- wc14g[, c("date", "name", "minute", "owngoal", "steam", 
+                        "team1", "team2", "score1", "score2")]
+
 
 # create player team (pteam) variable
+
 for (l in 1:nrow(countbymin)){
   if(countbymin$owngoal[l] == "t"){
     if(countbymin$steam[l] == countbymin$team1[l]){
@@ -47,8 +51,10 @@ for (l in 1:nrow(countbymin)){
   }
 }
 
-# add regions to countbymin
-tcolorkey <- data.frame( team = c("Mexico", "Costa Rica", "Honduras", "United States",
+# add regions to countbymin. Doing this by hand is cluncky but I could not quickly come up 
+# with a way to do it elegantly programmatically.
+
+regionkey <- data.frame( team = c("Mexico", "Costa Rica", "Honduras", "United States",
                                   "Argentina", "Brazil", "Chile", "Colombia", "Ecuador", "Uruguay",
                                   "Cameroon", "Côte d'Ivoire", "Nigeria", "Ghana", "Algeria",
                                   "Japan", "Iran", "South Korea",
@@ -65,7 +71,7 @@ tcolorkey <- data.frame( team = c("Mexico", "Costa Rica", "Honduras", "United St
                                     "UEFA", "UEFA", "UEFA", "UEFA", "UEFA"), stringsAsFactors = FALSE)
 
 for (i in 1:nrow(countbymin)){
-  countbymin$region[i] <- tcolorkey[tcolorkey$team == countbymin$pteam[i], "region"]
+  countbymin$region[i] <- regionkey[regionkey$team == countbymin$pteam[i], "region"]
 }
 
 ########## 
@@ -73,21 +79,43 @@ for (i in 1:nrow(countbymin)){
 ########## 
 
 
-shinyUI(pageWithSidebar(
-  headerPanel("2014 FIFA World Cup Goal Data Inspector"),
+shinyUI(fluidPage(    # pageWithSidebar
+  titlePanel("2014 FIFA World Cup Goal Inspector"),
   
   sidebarPanel(
+    h3("How to use this app"),
+
+    tags$ol(
+      tags$li(strong("Mouse over any goal in the histogram"), " to see ",
+                    tags$ul(
+                      tags$li("who scored it"),
+                      tags$li("the team for which they play"),
+                      tags$li("the opponent"),
+                      tags$li("the game score as a result of the goal.")
+                    )
+              ),
+      tags$li(strong("Select"), " FIFA Confederations ", strong("(region)"), "or a specific team ", 
+              strong("(team)"), " from the select boxes to dynamically ", em("(reactively)"), 
+              " highlight goals from those teams.")
+    ),
+    
     selectInput("region",
                 label = "Select a region or All",
                 choices = sort(c(" All", unique(countbymin$region))),
                 selected = " All"),
     selectInput("team",
                 label = "Select a team or All",
-                '',
-                selected = " All")
+                '',                 # leave choices blank because they will be updated dynamically
+                selected = " All"),
+    
+    p("Data for this ShinyApp is an extract from the ", 
+      a("openfootball project.", href = "https://github.com/openfootball"))
 
   ),
   mainPanel(
+    p("This ShinyApp features a histogram of goal count by game time from the 
+      2014 FIFA World Cup Finals in Brazil."), 
+    
     showOutput("ghist", "polycharts")
   )
 ))
